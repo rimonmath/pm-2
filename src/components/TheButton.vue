@@ -1,3 +1,43 @@
+<script setup>
+// export default {
+//   props: {
+//     loading: {
+//       type: Boolean,
+//       default: false
+//     },
+
+//     block: {
+//       type: Boolean,
+//       default: false
+//     },
+
+//     color: {
+//       type: String,
+//       default: "none"
+//     }
+//   }
+// };
+
+// import { defineProps } from "vue";
+
+defineProps({
+  loading: {
+    type: Boolean,
+    default: false
+  },
+
+  block: {
+    type: Boolean,
+    default: false
+  },
+
+  color: {
+    type: String,
+    default: "none"
+  }
+});
+</script>
+
 <template>
   <div
     class="the-button"
@@ -15,27 +55,6 @@
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  props: {
-    loading: {
-      type: Boolean,
-      default: false
-    },
-
-    block: {
-      type: Boolean,
-      default: false
-    },
-
-    color: {
-      type: String,
-      default: "none"
-    }
-  }
-};
-</script>
 
 <style>
 .the-button {

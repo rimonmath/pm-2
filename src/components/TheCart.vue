@@ -1,3 +1,48 @@
+<script setup>
+import { shallowRef } from "vue";
+import { useRouter } from "vue-router";
+import { useCartStore } from "../store/cartStore";
+import TheButton from "./TheButton.vue";
+import privateService from "../service/privateService";
+import { showErrorMessage, showSuccessMessage } from "../utils/functions";
+
+const phone = shallowRef("");
+const customer = shallowRef("");
+const enteringCustomerInfo = shallowRef(false);
+const confirming = shallowRef(false);
+
+const cartStore = useCartStore();
+const router = useRouter();
+
+function confirmNow() {
+  const orderData = {
+    customer: customer.value,
+    phone: phone.value,
+    cartItems: cartStore.products
+  };
+
+  // console.log(orderData);
+  confirming.value = true;
+
+  privateService
+    .sellDrug(orderData)
+    .then((res) => {
+      showSuccessMessage(res);
+      phone.value = "";
+      customer.value = "";
+      enteringCustomerInfo.value = false;
+      cartStore.clearCart();
+      router.push("/dashboard/selling-history");
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      confirming.value = false;
+    });
+}
+</script>
+
 <template>
   <div class="the-cart">
     <div class="the-cart__heading">Cart Items</div>
@@ -17,7 +62,7 @@
           />
         </th>
       </tr>
-      <tr v-for="(item, key) in cartItems" :key="key">
+      <tr v-for="(item, key) in cartStore.products" :key="key">
         <td>{{ item.name }}</td>
         <td>{{ item.weight }}</td>
         <td>{{ item.price }}</td>
@@ -34,7 +79,7 @@
             src="/img/trash.png"
             class="action-icon action-icon--delete-small"
             alt=""
-            @click="removeFromCart(item._id)"
+            @click="cartStore.remove(item._id)"
           />
         </td>
       </tr>
@@ -43,7 +88,7 @@
         <td colspan="6">
           <div class="text-right">
             <hr />
-            <strong>Grand Total : {{ totalPrice }} </strong>
+            <strong>Grand Total : {{ cartStore.totalPrice }} </strong>
           </div>
         </td>
       </tr>
@@ -78,65 +123,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { mapState, mapActions } from "pinia";
-import { useCartStore } from "../store/cartStore";
-import TheButton from "./TheButton.vue";
-import privateService from "../service/privateService";
-import { showErrorMessage, showSuccessMessage } from "../utils/functions";
-
-export default {
-  data: () => ({
-    phone: "",
-    customer: "",
-    enteringCustomerInfo: false,
-    confirming: false
-  }),
-  methods: {
-    ...mapActions(useCartStore, {
-      removeFromCart: "remove",
-      crealCart: "clearCart"
-    }),
-    confirmNow() {
-      const orderData = {
-        customer: this.customer,
-        phone: this.phone,
-        cartItems: this.cartItems
-      };
-
-      // console.log(orderData);
-      this.confirming = true;
-
-      privateService
-        .sellDrug(orderData)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.phone = "";
-          this.customer = "";
-          this.enteringCustomerInfo = false;
-          this.crealCart();
-          this.$router.push("/dashboard/selling-history");
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.confirming = false;
-        });
-    }
-  },
-  computed: {
-    ...mapState(useCartStore, {
-      cartItems: "products",
-      totalPrice: "totalPrice"
-    })
-  },
-  components: {
-    TheButton
-  }
-};
-</script>
 
 <style>
 .the-cart {

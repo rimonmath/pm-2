@@ -1,3 +1,100 @@
+<script setup>
+import { mapActions } from "pinia";
+import { useCartStore } from "../store/cartStore";
+import TheModal from "./TheModal.vue";
+import TheButton from "./TheButton.vue";
+import privateService from "../service/privateService";
+import { showErrorMessage } from "../utils/functions";
+
+import { shallowRef, ref, watch } from "vue";
+
+const cartStore = useCartStore();
+
+const showAvatar = shallowRef(false);
+const searchString = shallowRef("");
+const drugs = ref([]);
+const searchFocused = shallowRef(false);
+const lastSearchTime = shallowRef(0);
+const detailsModal = shallowRef(false);
+const selectedDrug = ref(false);
+const quantity = ref("");
+const qtyInput = ref(null);
+
+function logout() {
+  localStorage.removeItem("accessToken");
+  location.href = "/";
+}
+
+function searchDrug(searchString, lst) {
+  // console.log(searchString);
+  privateService
+    .searchDrug(searchString)
+    .then((res) => {
+      if (lst === lastSearchTime.value) {
+        console.log("UI updated");
+        drugs.value = res.data;
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
+
+function handleClick(drug) {
+  console.log("Handling...");
+  selectedDrug.value = drug;
+  detailsModal.value = true;
+}
+
+function addToCart() {
+  if (!quantity.value) {
+    showErrorMessage("Please enter quantity");
+    qtyInput.value.focus();
+  } else {
+    console.log("Adding to cart.");
+
+    // TODO: Implement add to cart feature
+    cartStore.add({ ...selectedDrug.value, quantity: quantity.value });
+    detailsModal.value = false;
+    quantity.value = 1;
+    searchString.value = "";
+  }
+}
+
+function handleBlur() {
+  setTimeout(() => {
+    searchFocused.value = false;
+  }, 100);
+}
+
+watch(searchString, (newValue) => {
+  if (newValue) {
+    lastSearchTime.value = Date.now();
+    searchDrug(newValue, lastSearchTime.value);
+  } else {
+    drugs.value = [];
+  }
+});
+
+/*
+export default {
+
+
+ 
+  watch: {
+    searchString(newValue) {
+      if (newValue) {
+        this.lastSearchTime = Date.now();
+        this.searchDrug(newValue, this.lastSearchTime);
+      } else {
+        this.drugs = [];
+      }
+    }
+  }
+};
+*/
+</script>
+
 <template>
   <div class="the-header">
     <div class="p-relative ml-7">
@@ -12,17 +109,19 @@
 
       <div class="search-results" v-show="searchFocused">
         <table>
-          <tr
-            class="result-item"
-            v-for="drug in drugs"
-            :key="drug.name"
-            @click="handleClick(drug)"
-          >
-            <td>{{ drug.name }}</td>
-            <td>{{ drug.weight }}</td>
-            <td>{{ drug.vendor }}</td>
-            <td>{{ drug.quantity }}</td>
-          </tr>
+          <tbody>
+            <tr
+              class="result-item"
+              v-for="drug in drugs"
+              :key="drug.name"
+              @click="handleClick(drug)"
+            >
+              <td>{{ drug.name }}</td>
+              <td>{{ drug.weight }}</td>
+              <td>{{ drug.vendor }}</td>
+              <td>{{ drug.quantity }}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -50,130 +149,47 @@
   <TheModal v-model="detailsModal" heading="Drug Details">
     <div>
       <table class="drug-details">
-        <tr>
-          <th>Name:</th>
-          <td>{{ selectedDrug.name }}</td>
-        </tr>
-        <tr>
-          <th>Type:</th>
-          <td>{{ selectedDrug.type }}</td>
-        </tr>
+        <tbody>
+          <tr>
+            <th>Name:</th>
+            <td>{{ selectedDrug.name }}</td>
+          </tr>
+          <tr>
+            <th>Type:</th>
+            <td>{{ selectedDrug.type }}</td>
+          </tr>
 
-        <tr>
-          <th>Weight:</th>
-          <td>{{ selectedDrug.weight }}</td>
-        </tr>
+          <tr>
+            <th>Weight:</th>
+            <td>{{ selectedDrug.weight }}</td>
+          </tr>
 
-        <tr>
-          <th>Vendor:</th>
-          <td>{{ selectedDrug.vendor }}</td>
-        </tr>
+          <tr>
+            <th>Vendor:</th>
+            <td>{{ selectedDrug.vendor }}</td>
+          </tr>
 
-        <tr>
-          <th>Price:</th>
-          <td>{{ selectedDrug.price }}</td>
-        </tr>
+          <tr>
+            <th>Price:</th>
+            <td>{{ selectedDrug.price }}</td>
+          </tr>
 
-        <tr>
-          <th>Available:</th>
-          <td>{{ selectedDrug.quantity }}</td>
-        </tr>
+          <tr>
+            <th>Available:</th>
+            <td>{{ selectedDrug.quantity }}</td>
+          </tr>
 
-        <tr>
-          <th>Quantity:</th>
-          <td><input type="number" v-model="quantity" ref="qtyInput" /></td>
-        </tr>
+          <tr>
+            <th>Quantity:</th>
+            <td><input type="number" v-model="quantity" ref="qtyInput" /></td>
+          </tr>
+        </tbody>
       </table>
 
       <TheButton @click="addToCart" class="w-100 mt-4">Add to cart</TheButton>
     </div>
   </TheModal>
 </template>
-
-<script>
-import { mapActions } from "pinia";
-import { useCartStore } from "../store/cartStore";
-import TheModal from "./TheModal.vue";
-import TheButton from "./TheButton.vue";
-import privateService from "../service/privateService";
-import { showErrorMessage } from "../utils/functions";
-
-export default {
-  data: () => ({
-    showAvatar: false,
-    searchString: "",
-    drugs: [],
-    searchFocused: false,
-    lastSearchTime: 0,
-    detailsModal: false,
-    selectedDrug: {},
-    quantity: ""
-  }),
-  components: {
-    TheModal,
-    TheButton
-  },
-  methods: {
-    ...mapActions(useCartStore, {
-      addToCartStore: "add"
-    }),
-    logout() {
-      localStorage.removeItem("accessToken");
-      location.href = "/";
-    },
-    searchDrug(searchString, lastSearchTime) {
-      // console.log(searchString);
-      privateService
-        .searchDrug(searchString)
-        .then((res) => {
-          if (lastSearchTime === this.lastSearchTime) {
-            console.log("UI updated");
-            this.drugs = res.data;
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
-    handleClick(drug) {
-      console.log("Handling...");
-      this.selectedDrug = drug;
-      this.detailsModal = true;
-    },
-    addToCart() {
-      console.log(this.selectedDrug);
-      console.log(this.quantity);
-      if (!this.quantity) {
-        showErrorMessage("Please enter quantity");
-        this.$refs.qtyInput.focus();
-      } else {
-        console.log("Adding to cart.");
-
-        // TODO: Implement add to cart feature
-        this.addToCartStore({ ...this.selectedDrug, quantity: this.quantity });
-        this.detailsModal = false;
-        this.quantity = 1;
-        this.searchString = "";
-      }
-    },
-    handleBlur() {
-      setTimeout(() => {
-        this.searchFocused = false;
-      }, 100);
-    }
-  },
-  watch: {
-    searchString(newValue) {
-      if (newValue) {
-        this.lastSearchTime = Date.now();
-        this.searchDrug(newValue, this.lastSearchTime);
-      } else {
-        this.drugs = [];
-      }
-    }
-  }
-};
-</script>
 
 <style>
 .the-header {

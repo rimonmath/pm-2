@@ -48,50 +48,56 @@ function confirmNow() {
     <div class="the-cart__heading">Cart Items</div>
 
     <table>
-      <tr>
-        <th>Item</th>
-        <th>Weight</th>
-        <th>Price</th>
-        <th>Qty</th>
-        <th>Total</th>
-        <th>
-          <img
-            src="/img/trash.png"
-            class="action-icon action-icon--delete-small"
-            alt=""
-          />
-        </th>
-      </tr>
-      <tr v-for="(item, key) in cartStore.products" :key="key">
-        <td>{{ item.name }}</td>
-        <td>{{ item.weight }}</td>
-        <td>{{ item.price }}</td>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Weight</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+          <th>
+            <img
+              src="/img/trash.png"
+              class="action-icon action-icon--delete-small"
+              alt=""
+            />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(item, key) in cartStore.products" :key="key">
+          <td>{{ item.name }}</td>
+          <td>{{ item.weight }}</td>
+          <td>{{ item.price }}</td>
 
-        <td>
-          <input class="qty-input" type="number" v-model="item.quantity" />
-        </td>
+          <td>
+            <input class="qty-input" type="number" v-model="item.quantity" />
+          </td>
 
-        <td class="text-right">
-          {{ item.price * item.quantity }}
-        </td>
-        <td>
-          <img
-            src="/img/trash.png"
-            class="action-icon action-icon--delete-small"
-            alt=""
-            @click="cartStore.remove(item._id)"
-          />
-        </td>
-      </tr>
+          <td class="text-right">
+            {{ item.price * item.quantity }}
+          </td>
+          <td>
+            <img
+              src="/img/trash.png"
+              class="action-icon action-icon--delete-small"
+              alt=""
+              @click="cartStore.remove(item._id)"
+            />
+          </td>
+        </tr>
+      </tbody>
 
-      <tr>
-        <td colspan="6">
-          <div class="text-right">
-            <hr />
-            <strong>Grand Total : {{ cartStore.totalPrice }} </strong>
-          </div>
-        </td>
-      </tr>
+      <tfoot>
+        <tr>
+          <td colspan="6">
+            <div class="text-right">
+              <hr />
+              <strong>Grand Total : {{ cartStore.totalPrice }} </strong>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
     </table>
 
     <TheButton

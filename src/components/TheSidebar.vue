@@ -1,3 +1,4 @@
+<script setup></script>
 <template>
   <div class="sidebar">
     <div class="sidebar__top">
@@ -16,17 +17,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { infoStore } from "../data/info";
-
-export default {
-  data: () => ({
-    projectName: infoStore.projectName,
-    visitCount: infoStore.visitCount
-  })
-};
-</script>
 
 <style>
 .sidebar {

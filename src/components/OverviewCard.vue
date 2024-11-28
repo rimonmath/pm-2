@@ -1,22 +1,20 @@
+<script setup>
+defineProps({
+  title: {
+    default: 0
+  },
+  description: {
+    default: "ddd"
+  }
+});
+</script>
+
 <template>
   <div class="overview-card">
     <div class="overview-card__left">{{ title }}</div>
     <div class="overview-card__right">{{ description }}</div>
   </div>
 </template>
-
-<script>
-export default {
-  props: {
-    title: {
-      default: 0
-    },
-    description: {
-      default: "ddd"
-    }
-  }
-};
-</script>
 
 <style>
 .overview-card {

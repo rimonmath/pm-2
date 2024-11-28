@@ -1,3 +1,16 @@
+<script setup>
+defineProps({
+  toastType: {
+    type: String,
+    default: "Success"
+  },
+  message: {
+    type: String,
+    default: "Tost message"
+  }
+});
+</script>
+
 <template>
   <div :class="['toast', 'toast__' + toastType]">
     <div class="toast__header">
@@ -10,20 +23,6 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  props: {
-    toastType: {
-      type: String,
-      default: "Success"
-    },
-    message: {
-      type: String,
-      default: "Tost message"
-    }
-  }
-};
-</script>
 
 <style scoped>
 .toast {

@@ -1,3 +1,22 @@
+<script setup>
+defineProps({
+  heading: {
+    type: String,
+    default: "Default Heading"
+  },
+  modelValue: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const emit = defineEmits(["update:modelValue"]);
+
+function closeModal() {
+  emit("update:modelValue", false);
+}
+</script>
+
 <template>
   <teleport to="body">
     <transition name="fade">
@@ -20,25 +39,7 @@
     </transition>
   </teleport>
 </template>
-<script>
-export default {
-  props: {
-    heading: {
-      type: String,
-      default: "Default Heading"
-    },
-    modelValue: {
-      type: Boolean,
-      default: false
-    }
-  },
-  methods: {
-    closeModal() {
-      this.$emit("update:modelValue", false);
-    }
-  }
-};
-</script>
+
 <style>
 .the-modal {
   position: fixed;

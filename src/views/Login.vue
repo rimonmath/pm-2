@@ -1,3 +1,119 @@
+<script setup>
+import axios from "axios";
+import { mapState, mapActions } from "pinia";
+import { eventBus } from "../utils/eventBus";
+import { setPrivateHeaders } from "../service/axiosInstance";
+import { showErrorMessage, showSuccessMessage } from "../utils/functions";
+import { infoStore } from "../data/info";
+import { useAuthStore } from "../store/authStore";
+import TheButton from "../components/TheButton.vue";
+import { shallowRef, ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { shallowReactive } from "vue";
+
+/*
+shallowRef:
+====================================================================
+string, number, boolean.
+
+e.g.: "foo", 1, 3.5, true, false
+
+
+ref:
+=====================================================================
+array, sometimes for complex object (specially unknown types of object), dom ref
+
+e.g.: [1, 2, 3], ["red", "green", "blue"],
+
+	[{"name": "Rahim", age: 20}, {"name": "Karim", age: 25}, ...],
+
+	{
+		"name": "Rahim",
+		age: 20,
+		address: {
+			division: "Rajshahi",
+			city: "Pabna",
+			house: "40/a,
+			Road 1"
+		}
+	},
+
+	html element ref, component ref
+
+
+shallowReactive: 
+=====================================================================
+simple object.
+e.g.: {"name": "Rahim", age: 20}
+
+
+
+reactive:
+=====================================================================
+Complex object (known type)
+e.g: {
+		"name": "Rahim",
+		age: 20,
+		address: {
+			division: "Rajshahi",
+			city: "Pabna",
+			house: "40/a,
+			Road 1"
+		},
+		skills: ['HTML', 'CSS', 'JS']
+	},
+
+
+*/
+
+const formData = shallowReactive({
+  username: "",
+  password: ""
+});
+
+const loggingIn = shallowRef(false);
+const projectName = infoStore.projectName;
+const authStore = useAuthStore();
+const usernameEl = ref(null);
+const router = useRouter();
+
+function handleSubmit() {
+  if (!formData.username) {
+    // TODO: show error message on toast
+
+    showErrorMessage("username can not be empty!");
+    usernameEl.value.focus();
+    return;
+  }
+
+  if (formData.password.length < 6) {
+    // alert("Password must be at least 6 characters long!");
+    // TODO: show error message on toast
+    showErrorMessage("Password must be at least 6 characters long!");
+    passwordEl.focus();
+    return;
+  }
+
+  loggingIn.value = true;
+
+  axios
+    .post("https://api.rimoned.com/api/pharmacy-management/v1/login", formData)
+    .then((res) => {
+      showSuccessMessage(res);
+      authStore.login(res.data);
+      localStorage.setItem("accessToken", res.data.accessToken);
+      setPrivateHeaders();
+      router.push("/dashboard");
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      loggingIn.value = false;
+    });
+}
+</script>
+
 <template>
   <div class="login-page">
     <div class="login-card">
@@ -25,7 +141,7 @@
           placeholder="Enter your username"
           v-model="formData.username"
           required
-          ref="username"
+          ref="usernameEl"
         />
 
         <label class="block mt-3">Password</label>
@@ -34,7 +150,7 @@
           placeholder="Enter password"
           v-model="formData.password"
           required
-          ref="password"
+          ref="passwordEl"
         />
 
         <!-- <p class="text-center mt-3" v-if="loggingIn">Logging in...</p> -->
@@ -58,83 +174,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import axios from "axios";
-import { mapState, mapActions } from "pinia";
-import { eventBus } from "../utils/eventBus";
-import { setPrivateHeaders } from "../service/axiosInstance";
-import { showErrorMessage, showSuccessMessage } from "../utils/functions";
-import { infoStore } from "../data/info";
-import { useAuthStore } from "../store/authStore";
-import TheButton from "../components/TheButton.vue";
-
-export default {
-  data: () => ({
-    formData: {
-      username: "",
-      password: ""
-    },
-    loggingIn: false,
-    movedToRight: false,
-    showing: false,
-    projectName: infoStore.projectName
-  }),
-  computed: {
-    ...mapState(useAuthStore, {
-      username: "username",
-      accessToken: "accessToken",
-      refreshToken: "refreshToken",
-      isLoggedIn: "isLoggedIn"
-    })
-  },
-  components: {
-    TheButton
-  },
-  methods: {
-    ...mapActions(useAuthStore, {
-      login: "login"
-    }),
-    handleSubmit() {
-      if (!this.formData.username) {
-        // TODO: show error message on toast
-
-        showErrorMessage("username can not be empty!");
-        this.$refs.username.focus();
-        return;
-      }
-      if (this.formData.password.length < 6) {
-        // alert("Password must be at least 6 characters long!");
-        // TODO: show error message on toast
-        showErrorMessage("Password must be at least 6 characters long!");
-        this.$refs.password.focus();
-
-        return;
-      }
-
-      this.loggingIn = true;
-      axios
-        .post(
-          "https://api.rimoned.com/api/pharmacy-management/v1/login",
-          this.formData
-        )
-        .then((res) => {
-          showSuccessMessage(res);
-          this.login(res.data);
-          localStorage.setItem("accessToken", res.data.accessToken);
-          setPrivateHeaders();
-          this.$router.push("/dashboard");
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.loggingIn = false;
-        });
-    }
-  }
-};
-</script>
 
 <style>
 .box {

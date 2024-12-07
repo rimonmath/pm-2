@@ -1,5 +1,29 @@
+<script setup>
+import TheSidebar from "../components/TheSidebar.vue";
+import TheHeader from "../components/TheHeader.vue";
+import TheCart from "../components/TheCart.vue";
+import { setPrivateHeaders } from "../service/axiosInstance";
+import { useThemeStore } from "../store/themeStore";
+import { mapState } from "pinia";
+import { shallowRef, onBeforeMount, onMounted } from "vue";
+
+const cartOpened = shallowRef(false);
+const themeStore = useThemeStore();
+
+onBeforeMount(() => {
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    location.href = "/";
+  }
+});
+
+onMounted(() => {
+  setPrivateHeaders();
+});
+</script>
+
 <template>
-  <div class="dashboard" :style="{ '--brand-color': brandColor }">
+  <div class="dashboard" :style="{ '--brand-color': themeStore.brandColor }">
     <div class="dashboard__left">
       <TheSidebar></TheSidebar>
     </div>
@@ -26,40 +50,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import TheSidebar from "../components/TheSidebar.vue";
-import TheHeader from "../components/TheHeader.vue";
-import TheCart from "../components/TheCart.vue";
-import { setPrivateHeaders } from "../service/axiosInstance";
-import { useThemeStore } from "../store/themeStore";
-import { mapState } from "pinia";
-
-export default {
-  data: () => ({
-    cartOpened: false
-  }),
-  computed: {
-    ...mapState(useThemeStore, {
-      brandColor: "brandColor"
-    })
-  },
-  components: {
-    TheSidebar,
-    TheHeader,
-    TheCart
-  },
-  created() {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      location.href = "/";
-    }
-  },
-  mounted() {
-    setPrivateHeaders();
-  }
-};
-</script>
 
 <style>
 .dashboard {

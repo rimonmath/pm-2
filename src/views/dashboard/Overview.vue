@@ -1,3 +1,40 @@
+<script setup>
+import privateService from "../../service/privateService";
+import OverviewCard from "../../components/OverviewCard.vue";
+import { Chart, Grid, Line } from "vue3-charts";
+import { ref } from "vue";
+import { shallowRef } from "vue";
+import { onMounted } from "vue";
+
+const overview = ref({});
+const gettingOverview = shallowRef(true);
+const direction = "horizontal";
+
+const margin = {
+  left: 0,
+  top: 20,
+  right: 20,
+  bottom: 0
+};
+
+function getOverview() {
+  gettingOverview.value = true;
+  privateService
+    .getOverview()
+    .then((res) => {
+      overview.value = res.data;
+    })
+    .catch((e) => {})
+    .finally(() => {
+      gettingOverview.value = false;
+    });
+}
+
+onMounted(() => {
+  setTimeout(getOverview, 333);
+});
+</script>
+
 <template>
   <h2>Overview</h2>
   <div class="text-center" v-if="gettingOverview">Loading...</div>
@@ -48,60 +85,3 @@
     </Chart>
   </div>
 </template>
-
-<script>
-import { infoStore } from "../../data/info";
-import { mapState } from "pinia";
-import { useAuthStore } from "../../store/authStore";
-import privateService from "../../service/privateService";
-import OverviewCard from "../../components/OverviewCard.vue";
-import { Chart, Grid, Line } from "vue3-charts";
-
-export default {
-  components: {
-    OverviewCard,
-    Chart,
-    Grid,
-    Line
-  },
-  data: () => ({
-    projectName: infoStore.projectName,
-    visitCount: infoStore.visitCount,
-    overview: {},
-    gettingOverview: true,
-    direction: "horizontal",
-    margin: {
-      left: 0,
-      top: 20,
-      right: 20,
-      bottom: 0
-    }
-  }),
-  computed: {
-    ...mapState(useAuthStore, {
-      username: "username"
-    })
-  },
-  methods: {
-    increase() {
-      infoStore.visitCount += 1;
-      console.log(infoStore);
-    },
-    getOverview() {
-      this.gettingOverview = true;
-      privateService
-        .getOverview()
-        .then((res) => {
-          this.overview = res.data;
-        })
-        .catch((e) => {})
-        .finally(() => {
-          this.gettingOverview = false;
-        });
-    }
-  },
-  mounted() {
-    setTimeout(this.getOverview, 333);
-  }
-};
-</script>

@@ -1,3 +1,134 @@
+<script setup>
+import axios from "axios";
+import TheButton from "../../components/TheButton.vue";
+import TheModal from "../../components/TheModal.vue";
+import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
+import privateService from "../../service/privateService";
+import { shallowRef, ref } from "vue";
+import { shallowReactive } from "vue";
+import { onMounted } from "vue";
+
+const addModal = shallowRef(false);
+const deleteModal = shallowRef(false);
+const editModal = shallowRef(false);
+const newDrug = shallowReactive({
+  name: "",
+  weight: "",
+  type: "",
+  vendor: "",
+  price: "",
+  quantity: ""
+});
+
+const selectedDrug = ref({});
+
+const deleting = shallowRef(false);
+const editing = shallowRef(false);
+const adding = shallowRef(false);
+
+const drugs = ref([]);
+
+const gettingDrugs = shallowRef(false);
+const vendors = ref([]);
+
+onMounted(() => {
+  setTimeout(getAllDrugs, 100);
+  setTimeout(getAllVendors, 100);
+});
+
+function resetForm() {
+  newDrug.name = "";
+  newDrug.weight = "";
+  newDrug.type = "";
+  newDrug.vendor = "";
+  newDrug.price = "";
+  newDrug.quantity = "";
+}
+
+function getAllDrugs() {
+  gettingDrugs.value = true;
+
+  privateService
+    .getDrugs()
+    .then((res) => {
+      drugs.value = res.data;
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      gettingDrugs.value = false;
+    });
+}
+
+function getAllVendors() {
+  // this.gettingDrugs = true;
+  privateService
+    .getVendors()
+    .then((res) => {
+      vendors.value = res.data;
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      // this.gettingDrugs = false;
+    });
+}
+
+function addNew() {
+  // console.log(localStorage.getItem("accessToken"));
+  adding.value = true;
+  privateService
+    .addDrug(newDrug)
+    .then((res) => {
+      showSuccessMessage(res);
+      addModal.value = false;
+      resetForm();
+      getAllDrugs();
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      adding.value = false;
+    });
+}
+
+function deleteDrug() {
+  deleting.value = true;
+  privateService
+    .deleteDrug(selectedDrug.value._id)
+    .then((res) => {
+      showSuccessMessage(res);
+      deleteModal.value = false;
+      getAllDrugs();
+    })
+    .catch((err) => {
+      showErrorMessage(res);
+    })
+    .finally(() => {
+      deleting.value = false;
+    });
+}
+
+function editDrug() {
+  editing.value = true;
+  privateService
+    .editDrug(selectedDrug.value)
+    .then((res) => {
+      showSuccessMessage(res);
+      editModal.value = false;
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      editing.value = false;
+    });
+}
+</script>
+
 <template>
   <div class="d-flex jc-between ai-center">
     <h2>All drugs</h2>
@@ -263,134 +394,3 @@
     </TheButton>
   </TheModal>
 </template>
-
-<script>
-import axios from "axios";
-import TheButton from "../../components/TheButton.vue";
-import TheModal from "../../components/TheModal.vue";
-import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
-import privateService from "../../service/privateService";
-
-export default {
-  data: () => ({
-    addModal: false,
-    deleteModal: false,
-    editModal: false,
-    newDrug: {
-      name: "",
-      weight: "",
-      type: "",
-      vendor: "",
-      price: "",
-      quantity: ""
-    },
-    selectedDrug: {},
-    deleting: false,
-    editing: false,
-    adding: false,
-    drugs: [],
-    gettingDrugs: false,
-    vendors: []
-  }),
-  components: {
-    TheButton,
-    TheModal
-  },
-
-  mounted() {
-    setTimeout(this.getAllDrugs, 100);
-    setTimeout(this.getAllVendors, 100);
-    // this.getAllDrugs();
-  },
-  methods: {
-    resetForm() {
-      this.newDrug = {
-        name: "",
-        weight: "",
-        type: "",
-        vendor: "",
-        price: "",
-        quantity: ""
-      };
-    },
-    getAllDrugs() {
-      this.gettingDrugs = true;
-      privateService
-        .getDrugs()
-        .then((res) => {
-          this.drugs = res.data;
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.gettingDrugs = false;
-        });
-    },
-
-    getAllVendors() {
-      // this.gettingDrugs = true;
-      privateService
-        .getVendors()
-        .then((res) => {
-          this.vendors = res.data;
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          // this.gettingDrugs = false;
-        });
-    },
-    addNew() {
-      // console.log(localStorage.getItem("accessToken"));
-      this.adding = true;
-      privateService
-        .addDrug(this.newDrug)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.addModal = false;
-          this.resetForm();
-          this.getAllDrugs();
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.adding = false;
-        });
-    },
-    deleteDrug() {
-      this.deleting = true;
-      privateService
-        .deleteDrug(this.selectedDrug._id)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.deleteModal = false;
-          this.getAllDrugs();
-        })
-        .catch((err) => {
-          showErrorMessage(res);
-        })
-        .finally(() => {
-          this.deleting = false;
-        });
-    },
-    editDrug() {
-      this.editing = true;
-      privateService
-        .editDrug(this.selectedDrug)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.editModal = false;
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.editing = false;
-        });
-    }
-  }
-};
-</script>

@@ -63,5 +63,9 @@ export default {
 
   updateWebsiteSettings(payload) {
     return axiosPrivate.put("/private/website-settings", payload);
+  },
+
+  getSettings(settingsName) {
+    return axiosPrivate.get("/private/settings/" + settingsName);
   }
 };

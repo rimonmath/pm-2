@@ -6,40 +6,19 @@ import { showErrorMessage, showSuccessMessage } from "../../../utils/functions";
 import { shallowReactive } from "vue";
 
 import { useMouse } from "../../../composables/useMouse.js";
+import { useSettings } from "@/composables/useSettings";
 
 const { x, y } = useMouse();
 
-// State variables
-const getting = shallowRef(true);
-const saving = shallowRef(false);
-const websiteSettings = shallowReactive({
-  shopName: "",
-  address: ""
-});
+const { getting, settings } = useSettings("website");
 
-// Fetch website settings
-const getWebsiteSettings = () => {
-  getting.value = true;
-  privateService
-    .getWebsiteSettings()
-    .then((res) => {
-      if (res.data.shopName) {
-        Object.assign(websiteSettings, res.data);
-      }
-    })
-    .catch((e) => {
-      console.error(e);
-    })
-    .finally(() => {
-      getting.value = false;
-    });
-};
+const saving = shallowRef(false);
 
 // Save website settings
 const saveData = () => {
   saving.value = true;
   privateService
-    .updateWebsiteSettings(websiteSettings)
+    .updateWebsiteSettings(settings.value)
     .then((res) => {
       showSuccessMessage(res);
     })
@@ -50,11 +29,6 @@ const saveData = () => {
       saving.value = false;
     });
 };
-
-// Fetch settings on mount
-onMounted(() => {
-  setTimeout(getWebsiteSettings, 333);
-});
 </script>
 
 <template>
@@ -62,9 +36,9 @@ onMounted(() => {
     <div class="text-center" v-if="getting">Loading...</div>
     <div v-else>
       <label class="block">Shop Name</label>
-      <input type="text" v-model="websiteSettings.shopName" />
+      <input type="text" v-model="settings.shopName" />
       <label class="mt-3 block">Address</label>
-      <input type="text" v-model="websiteSettings.address" />
+      <input type="text" v-model="settings.address" />
       <br />
       <TheButton class="inline-block mt-4" :loading="saving" @click="saveData">
         Save

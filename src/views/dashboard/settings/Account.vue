@@ -5,40 +5,17 @@ import privateService from "../../../service/privateService";
 import { showErrorMessage, showSuccessMessage } from "../../../utils/functions";
 
 import { useMouse } from "../../../composables/useMouse.js";
+import { useSettings } from "@/composables/useSettings";
 
 const { x, y } = useMouse();
 
-// Reactive variables
-const getting = shallowRef(true);
+const { getting, settings } = useSettings("account");
 const saving = shallowRef(false);
-const accountSettings = ref({
-  fullName: "",
-  email: "",
-  phone: ""
-});
-
-// Methods
-const getAccountSettings = () => {
-  getting.value = true;
-  privateService
-    .getAccountSettings()
-    .then((res) => {
-      if (res.data.fullName) {
-        accountSettings.value = res.data;
-      }
-    })
-    .catch(() => {
-      showErrorMessage("Failed to fetch account settings.");
-    })
-    .finally(() => {
-      getting.value = false;
-    });
-};
 
 const saveData = () => {
   saving.value = true;
   privateService
-    .updateAccountSettings(accountSettings.value)
+    .updateAccountSettings(settings.value)
     .then((res) => {
       showSuccessMessage(res);
     })
@@ -49,11 +26,6 @@ const saveData = () => {
       saving.value = false;
     });
 };
-
-// Lifecycle hook
-onMounted(() => {
-  setTimeout(getAccountSettings, 333);
-});
 </script>
 
 <template>
@@ -61,11 +33,11 @@ onMounted(() => {
     <div class="text-center" v-if="getting">Loading...</div>
     <div v-else>
       <label class="block">Full Name</label>
-      <input type="text" v-model="accountSettings.fullName" />
+      <input type="text" v-model="settings.fullName" />
       <label class="mt-3 block">Email</label>
-      <input type="text" v-model="accountSettings.email" />
+      <input type="text" v-model="settings.email" />
       <label class="mt-3 block">Phone</label>
-      <input type="text" v-model="accountSettings.phone" />
+      <input type="text" v-model="settings.phone" />
       <br />
       <TheButton class="inline-block mt-4" :loading="saving" @click="saveData">
         Save

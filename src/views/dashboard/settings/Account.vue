@@ -1,58 +1,55 @@
-<script>
+<script setup>
+import { ref, shallowRef, onMounted } from "vue";
 import TheButton from "../../../components/TheButton.vue";
 import privateService from "../../../service/privateService";
 import { showErrorMessage, showSuccessMessage } from "../../../utils/functions";
 
-export default {
-  data: () => ({
-    getting: true,
-    saving: false,
-    accountSettings: {
-      fullName: "",
-      email: "",
-      phone: ""
-    }
-  }),
+// Reactive variables
+const getting = shallowRef(true);
+const saving = shallowRef(false);
+const accountSettings = ref({
+  fullName: "",
+  email: "",
+  phone: ""
+});
 
-  methods: {
-    getAccountSettings() {
-      this.getting = true;
-      privateService
-        .getAccountSettings()
-        .then((res) => {
-          if (res.data.fullName) {
-            this.accountSettings = res.data;
-          }
-        })
-        .catch((e) => {})
-        .finally(() => {
-          this.getting = false;
-        });
-    },
-
-    saveData() {
-      this.saving = true;
-      privateService
-        .updateAccountSettings(this.accountSettings)
-        .then((res) => {
-          showSuccessMessage(res);
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.saving = false;
-        });
-    }
-  },
-  components: {
-    TheButton
-  },
-
-  mounted() {
-    setTimeout(this.getAccountSettings, 333);
-  }
+// Methods
+const getAccountSettings = () => {
+  getting.value = true;
+  privateService
+    .getAccountSettings()
+    .then((res) => {
+      if (res.data.fullName) {
+        accountSettings.value = res.data;
+      }
+    })
+    .catch(() => {
+      showErrorMessage("Failed to fetch account settings.");
+    })
+    .finally(() => {
+      getting.value = false;
+    });
 };
+
+const saveData = () => {
+  saving.value = true;
+  privateService
+    .updateAccountSettings(accountSettings.value)
+    .then((res) => {
+      showSuccessMessage(res);
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      saving.value = false;
+    });
+};
+
+// Lifecycle hook
+onMounted(() => {
+  setTimeout(getAccountSettings, 333);
+});
 </script>
 
 <template>

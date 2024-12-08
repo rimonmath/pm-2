@@ -1,3 +1,20 @@
+<script setup>
+import { computed } from "vue"; // Import computed
+import { useThemeStore } from "../../../store/themeStore";
+import TheButton from "../../../components/TheButton.vue";
+
+// Access the theme store
+const themeStore = useThemeStore();
+
+// Reactive computed state
+const brandColor = computed(() => themeStore.brandColor);
+
+// Methods
+const handleInput = (e) => {
+  themeStore.setBrandColor(e.target.value);
+};
+</script>
+
 <template>
   <div>
     <br />
@@ -12,36 +29,9 @@
       @input="handleInput"
     />
     <br />
+    <TheButton>Save</TheButton>
   </div>
-
-  <TheButton>Save</TheButton>
 </template>
-
-<script>
-import { useThemeStore } from "../../../store/themeStore";
-import { mapActions } from "pinia";
-import { mapState } from "pinia";
-import TheButton from "../../../components/TheButton.vue";
-export default {
-  data: () => ({}),
-  computed: {
-    ...mapState(useThemeStore, {
-      brandColor: "brandColor"
-    })
-  },
-  components: {
-    TheButton
-  },
-  methods: {
-    ...mapActions(useThemeStore, {
-      setBrandColor: "setBrandColor"
-    }),
-    handleInput(e) {
-      this.setBrandColor(e.target.value);
-    }
-  }
-};
-</script>
 
 <style scoped>
 .brand-color {

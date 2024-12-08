@@ -1,57 +1,56 @@
-<script>
+<script setup>
+import { reactive, shallowRef, onMounted } from "vue";
 import TheButton from "../../../components/TheButton.vue";
 import privateService from "../../../service/privateService";
 import { showErrorMessage, showSuccessMessage } from "../../../utils/functions";
+import { shallowReactive } from "vue";
 
-export default {
-  data: () => ({
-    getting: true,
-    saving: false,
-    websiteSettings: {
-      shopName: "",
-      address: ""
-    }
-  }),
+// State variables
+const getting = shallowRef(true);
+const saving = shallowRef(false);
+const websiteSettings = shallowReactive({
+  shopName: "",
+  address: ""
+});
 
-  methods: {
-    getWebsiteSettings() {
-      this.getting = true;
-      privateService
-        .getWebsiteSettings()
-        .then((res) => {
-          if (res.data.shopName) {
-            this.websiteSettings = res.data;
-          }
-        })
-        .catch((e) => {})
-        .finally(() => {
-          this.getting = false;
-        });
-    },
-
-    saveData() {
-      this.saving = true;
-      privateService
-        .updateWebsiteSettings(this.websiteSettings)
-        .then((res) => {
-          showSuccessMessage(res);
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.saving = false;
-        });
-    }
-  },
-  components: {
-    TheButton
-  },
-
-  mounted() {
-    setTimeout(this.getWebsiteSettings, 333);
-  }
+// Fetch website settings
+const getWebsiteSettings = () => {
+  getting.value = true;
+  privateService
+    .getWebsiteSettings()
+    .then((res) => {
+      if (res.data.shopName) {
+        Object.assign(websiteSettings, res.data);
+      }
+    })
+    .catch((e) => {
+      console.error(e);
+    })
+    .finally(() => {
+      getting.value = false;
+    });
 };
+
+// Save website settings
+const saveData = () => {
+  saving.value = true;
+  privateService
+    .updateWebsiteSettings(websiteSettings)
+    .then((res) => {
+      showSuccessMessage(res);
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      saving.value = false;
+    });
+};
+
+// Fetch settings on mount
+onMounted(() => {
+  setTimeout(getWebsiteSettings, 333);
+});
 </script>
 
 <template>

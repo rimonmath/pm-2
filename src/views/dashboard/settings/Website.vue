@@ -5,6 +5,10 @@ import privateService from "../../../service/privateService";
 import { showErrorMessage, showSuccessMessage } from "../../../utils/functions";
 import { shallowReactive } from "vue";
 
+import { useMouse } from "../../../composables/useMouse.js";
+
+const { x, y } = useMouse();
+
 // State variables
 const getting = shallowRef(true);
 const saving = shallowRef(false);
@@ -65,6 +69,9 @@ onMounted(() => {
       <TheButton class="inline-block mt-4" :loading="saving" @click="saveData">
         Save
       </TheButton>
+
+      <hr />
+      <p>x: {{ x }}, y: {{ y }}</p>
     </div>
   </div>
 </template>

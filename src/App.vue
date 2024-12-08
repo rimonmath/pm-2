@@ -1,57 +1,42 @@
+<script setup>
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import TheToast from "./components/TheToast.vue";
+import { eventBus } from "./utils/eventBus";
+
+// Reactive state
+const toasts = ref([]);
+
+// Remove a toast after a delay
+const removeOneToast = () => {
+  setTimeout(() => {
+    toasts.value.shift();
+  }, 2222);
+};
+
+// Listen for toast events
+onMounted(() => {
+  eventBus.on("toast", (data) => {
+    toasts.value.push(data);
+    removeOneToast();
+  });
+});
+</script>
+
 <template>
   <router-view></router-view>
 
-  <!-- <div class="toasts"> -->
   <TransitionGroup name="slide-left" tag="div" class="toasts">
     <TheToast
       v-for="(toast, i) in toasts"
       :key="i"
       :toastType="toast.type"
       :message="toast.message"
-    ></TheToast>
+    />
   </TransitionGroup>
-  <!-- </div> -->
 </template>
 
-<script>
-import axios from "axios";
-import TheToast from "./components/TheToast.vue";
-import { eventBus } from "./utils/eventBus";
-
-export default {
-  data: () => ({
-    toasts: [
-      // {
-      //   type: "Success",
-      //   message: "Done Successfully!"
-      // },
-      // {
-      //   type: "Error",
-      //   message: "Something went wrong!"
-      // }
-    ]
-  }),
-  components: {
-    TheToast
-  },
-  mounted() {
-    eventBus.on("toast", (data) => {
-      // console.log(data);
-      this.toasts.push(data);
-      this.removeOneToast();
-    });
-  },
-  methods: {
-    removeOneToast() {
-      setTimeout(() => {
-        this.toasts.shift();
-      }, 2222);
-    }
-  }
-};
-</script>
-
-<style>
+<style scoped>
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: all 0.25s ease;

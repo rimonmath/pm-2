@@ -1,15 +1,20 @@
 import { defineStore } from "pinia";
+import { shallowRef } from "vue";
 
-const brandColor = localStorage.getItem("brandColor") || "#491D34";
+const initialBrandColor = localStorage.getItem("brandColor") || "#491D34";
 
-export const useThemeStore = defineStore("theme", {
-  state: () => ({
-    brandColor: brandColor
-  }),
+export const useThemeStore = defineStore("theme", () => {
+  // State with shallowRef for primitive reactivity
+  const brandColor = shallowRef(initialBrandColor);
 
-  actions: {
-    setBrandColor(payload) {
-      this.brandColor = payload;
-    }
-  }
+  // Actions
+  const setBrandColor = (payload) => {
+    brandColor.value = payload;
+    localStorage.setItem("brandColor", payload); // Save to localStorage
+  };
+
+  return {
+    brandColor,
+    setBrandColor
+  };
 });

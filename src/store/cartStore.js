@@ -1,37 +1,53 @@
 import { defineStore } from "pinia";
+import { reactive, computed } from "vue";
 
-const products = JSON.parse(localStorage.getItem("products") || "{}");
+const initialProducts = JSON.parse(localStorage.getItem("products") || "{}");
 
-export const useCartStore = defineStore("cart", {
-  state: () => ({
-    products: products
-  }),
-  getters: {
-    totalPrice() {
-      let total = 0;
-      for (const key in this.products) {
-        total += this.products[key].price * this.products[key].quantity;
-      }
+export const useCartStore = defineStore("cart", () => {
+  // State using reactive for deep reactivity
+  const products = reactive(initialProducts);
 
-      return total;
+  // Getter: Calculate total price
+  const totalPrice = computed(() => {
+    let total = 0;
+    for (const key in products) {
+      total += products[key].price * products[key].quantity;
     }
-  },
-  actions: {
-    add(payload) {
-      console.log(payload);
-      if (this.products[payload._id]) {
-        this.products[payload._id].quantity += payload.quantity;
-      } else {
-        this.products[payload._id] = payload;
-      }
-    },
+    return total;
+  });
 
-    remove(id) {
-      delete this.products[id];
-    },
-
-    clearCart() {
-      this.products = {};
+  // Actions
+  const add = (payload) => {
+    if (products[payload._id]) {
+      products[payload._id].quantity += payload.quantity;
+    } else {
+      products[payload._id] = payload;
     }
-  }
+    saveToLocalStorage();
+  };
+
+  const remove = (id) => {
+    delete products[id];
+    saveToLocalStorage();
+  };
+
+  const clearCart = () => {
+    for (const key in products) {
+      delete products[key];
+    }
+    saveToLocalStorage();
+  };
+
+  // Sync with localStorage
+  const saveToLocalStorage = () => {
+    localStorage.setItem("products", JSON.stringify(products));
+  };
+
+  return {
+    products,
+    totalPrice,
+    add,
+    remove,
+    clearCart
+  };
 });

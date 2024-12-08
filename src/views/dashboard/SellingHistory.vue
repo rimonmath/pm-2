@@ -1,3 +1,71 @@
+<script setup>
+import { ref, computed, onMounted, shallowRef } from "vue";
+import privateService from "../../service/privateService";
+import TheModal from "../../components/TheModal.vue";
+import TheButton from "../../components/TheButton.vue";
+import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
+
+// State variables
+const history = ref([]);
+const gettingHistory = shallowRef(true);
+const deleting = shallowRef(false);
+const deleteModal = shallowRef(false);
+const detailsModal = shallowRef(false);
+const selectedOrderHistoryIndex = shallowRef(-1);
+
+// Computed properties
+const selectedOrderHistory = computed(() => {
+  return history.value[selectedOrderHistoryIndex.value] || { cartItems: {} };
+});
+
+const totalPrice = computed(() => {
+  let tp = 0;
+  for (let key in selectedOrderHistory.value.cartItems) {
+    const item = selectedOrderHistory.value.cartItems[key];
+    tp += item.price * item.quantity;
+  }
+  return tp;
+});
+
+// Methods
+const getHistory = () => {
+  gettingHistory.value = true;
+  privateService
+    .getHistory()
+    .then((res) => {
+      history.value = res.data;
+    })
+    .catch(() => {
+      showErrorMessage("Failed to fetch history.");
+    })
+    .finally(() => {
+      gettingHistory.value = false;
+    });
+};
+
+const deleteHistory = () => {
+  deleting.value = true;
+  privateService
+    .deleteHistory(selectedOrderHistory.value._id)
+    .then((res) => {
+      showSuccessMessage(res);
+      deleteModal.value = false;
+      getHistory();
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      deleting.value = false;
+    });
+};
+
+// Lifecycle hook
+onMounted(() => {
+  setTimeout(getHistory, 333);
+});
+</script>
+
 <template>
   <div>
     <h2>Selling History</h2>
@@ -57,25 +125,12 @@
             <th class="text-right">Total</th>
           </tr>
           <tr v-for="item in selectedOrderHistory.cartItems" :key="item.name">
-            <td>
-              {{ item.name }}
-            </td>
-            <td>
-              {{ item.weight }}
-            </td>
-            <td>
-              {{ item.price }}
-            </td>
-
-            <td>
-              {{ item.quantity }}
-            </td>
-
-            <td class="text-right">
-              {{ item.quantity * item.price }}
-            </td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.weight }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td class="text-right">{{ item.quantity * item.price }}</td>
           </tr>
-
           <tr>
             <td colspan="6">
               <div class="text-right">
@@ -99,77 +154,3 @@
     </TheModal>
   </div>
 </template>
-
-<script>
-import privateService from "../../service/privateService";
-import TheModal from "../../components/TheModal.vue";
-import TheButton from "../../components/TheButton.vue";
-import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
-
-export default {
-  components: {
-    TheModal,
-    TheButton
-  },
-  data: () => ({
-    history: [],
-    gettingHistory: true,
-    deleting: false,
-    deleteModal: false,
-    detailsModal: false,
-    selectedOrderHistoryIndex: -1
-  }),
-  computed: {
-    selectedOrderHistory() {
-      return this.history[this.selectedOrderHistoryIndex] || { cartItems: {} };
-    },
-
-    totalPrice() {
-      // return 0;
-      let tp = 0;
-
-      for (let key in this.selectedOrderHistory.cartItems) {
-        tp +=
-          this.selectedOrderHistory.cartItems[key].price *
-          this.selectedOrderHistory.cartItems[key].quantity;
-      }
-
-      return tp;
-    }
-  },
-  methods: {
-    getHistory() {
-      this.gettingHistory = true;
-      privateService
-        .getHistory()
-        .then((res) => {
-          this.history = res.data;
-        })
-        .catch((e) => {})
-        .finally(() => {
-          this.gettingHistory = false;
-        });
-    },
-    deleteHistory() {
-      this.deleting = true;
-      privateService
-        .deleteHistory(this.selectedOrderHistory._id)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.deleteModal = false;
-          this.getHistory();
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.deleting = false;
-        });
-    }
-  },
-
-  mounted() {
-    setTimeout(this.getHistory, 333);
-  }
-};
-</script>

@@ -1,3 +1,105 @@
+<script setup>
+import { ref, reactive, onMounted } from "vue";
+import TheButton from "../../components/TheButton.vue";
+import TheModal from "../../components/TheModal.vue";
+import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
+import privateService from "../../service/privateService";
+
+// State variables
+const addModal = ref(false);
+const deleteModal = ref(false);
+const editModal = ref(false);
+
+const newVendor = reactive({
+  name: "",
+  description: ""
+});
+
+const selectedVendor = reactive({});
+const deleting = ref(false);
+const editing = ref(false);
+const adding = ref(false);
+const vendors = ref([]);
+const gettingVendors = ref(false);
+
+// Methods
+const resetForm = () => {
+  newVendor.name = "";
+  newVendor.description = "";
+};
+
+const getAllVendors = () => {
+  gettingVendors.value = true;
+  privateService
+    .getVendors()
+    .then((res) => {
+      vendors.value = res.data;
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      gettingVendors.value = false;
+    });
+};
+
+const addNew = () => {
+  adding.value = true;
+  privateService
+    .addVendor(newVendor)
+    .then((res) => {
+      showSuccessMessage(res);
+      addModal.value = false;
+      resetForm();
+      getAllVendors();
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      adding.value = false;
+    });
+};
+
+const deleteVendor = () => {
+  deleting.value = true;
+  privateService
+    .deleteVendor(selectedVendor._id)
+    .then((res) => {
+      showSuccessMessage(res);
+      deleteModal.value = false;
+      getAllVendors();
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      deleting.value = false;
+    });
+};
+
+const editVendor = () => {
+  editing.value = true;
+  privateService
+    .editVendor(selectedVendor)
+    .then((res) => {
+      showSuccessMessage(res);
+      editModal.value = false;
+    })
+    .catch((err) => {
+      showErrorMessage(err);
+    })
+    .finally(() => {
+      editing.value = false;
+    });
+};
+
+// Lifecycle hook
+onMounted(() => {
+  setTimeout(getAllVendors, 100);
+});
+</script>
+
 <template>
   <div class="d-flex jc-between ai-center">
     <h2>All vendors</h2>
@@ -25,7 +127,9 @@
             alt=""
             class="action-icon"
             @click="
-              selectedVendor = vendor;
+              selectedVendor.name = vendor.name;
+              selectedVendor.description = vendor.description;
+              selectedVendor._id = vendor._id;
               editModal = true;
             "
           />
@@ -34,7 +138,8 @@
             alt=""
             class="action-icon action-icon--delete ml-3"
             @click="
-              selectedVendor = vendor;
+              selectedVendor.name = vendor.name;
+              selectedVendor._id = vendor._id;
               deleteModal = true;
             "
           />
@@ -63,7 +168,7 @@
         v-model="newVendor.description"
       />
 
-      <the-button :loading="adding" class="w-100 mt-4"> Add </the-button>
+      <TheButton :loading="adding" class="w-100 mt-4">Add</TheButton>
     </form>
   </TheModal>
 
@@ -87,9 +192,9 @@
         v-model="selectedVendor.description"
       />
 
-      <the-button :loading="editing" class="w-100 mt-4">
+      <TheButton :loading="editing" class="w-100 mt-4">
         Save Changes
-      </the-button>
+      </TheButton>
     </form>
   </TheModal>
 
@@ -107,107 +212,3 @@
     </TheButton>
   </TheModal>
 </template>
-
-<script>
-import axios from "axios";
-import TheButton from "../../components/TheButton.vue";
-import TheModal from "../../components/TheModal.vue";
-import { showErrorMessage, showSuccessMessage } from "../../utils/functions";
-import privateService from "../../service/privateService";
-
-export default {
-  data: () => ({
-    addModal: false,
-    deleteModal: false,
-    editModal: false,
-
-    newVendor: {
-      name: "",
-      description: ""
-    },
-    selectedVendor: {},
-    deleting: false,
-    editing: false,
-    adding: false,
-    vendors: [],
-    gettingVendors: false
-  }),
-  components: {
-    TheButton,
-    TheModal
-  },
-
-  mounted() {
-    setTimeout(this.getAllVendors, 100);
-    // this.getAllVendors();
-  },
-  methods: {
-    resetForm() {
-      this.newVendor = { name: "", description: "" };
-    },
-    getAllVendors() {
-      this.gettingVendors = true;
-      privateService
-        .getVendors()
-        .then((res) => {
-          this.vendors = res.data;
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.gettingVendors = false;
-        });
-    },
-    addNew() {
-      // console.log(localStorage.getItem("accessToken"));
-      this.adding = true;
-      privateService
-        .addVendor(this.newVendor)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.addModal = false;
-          this.resetForm();
-          this.getAllVendors();
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.adding = false;
-        });
-    },
-    deleteVendor() {
-      this.deleting = true;
-      privateService
-        .deleteVendor(this.selectedVendor._id)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.deleteModal = false;
-          this.getAllVendors();
-        })
-        .catch((err) => {
-          showErrorMessage(res);
-        })
-        .finally(() => {
-          this.deleting = false;
-        });
-    },
-    editVendor() {
-      this.editing = true;
-      privateService
-        .editVendor(this.selectedVendor)
-        .then((res) => {
-          showSuccessMessage(res);
-          this.editModal = false;
-        })
-        .catch((err) => {
-          showErrorMessage(err);
-        })
-        .finally(() => {
-          this.editing = false;
-        });
-    }
-  }
-};
-</script>
